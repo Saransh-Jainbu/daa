@@ -12,25 +12,26 @@ function App() {
   const [animationSteps, setAnimationSteps] = useState<Array<{digits: string[], from?: number, to?: number, desc: string, type: 'highlight' | 'swap' | 'noop' | 'try' | 'end' | 'backtrack', highlight?: number[], path?: string[]}>>([]);
   const [currentStep, setCurrentStep] = useState<number>(-1);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
-  const [approach, setApproach] = useState<'greedy' | 'backtracking'>('greedy');
+  const [approach, setApproach] = useState<'greedy' | 'backtracking-basic' | 'backtracking-optimized'>('greedy');
   const resultRef = useRef<HTMLDivElement>(null)
 
   const [showAlgoDetails, setShowAlgoDetails] = useState<boolean>(false);
-  const [activeAlgoTab, setActiveAlgoTab] = useState<'greedy' | 'backtracking' | 'comparison'>('comparison');
+  const [activeAlgoTab, setActiveAlgoTab] = useState<'greedy' | 'backtracking-basic' | 'backtracking-optimized' | 'comparison'>('comparison');
 
   const [history, setHistory] = useState<Array<{
     id: string,
     number: string,
     swaps: number,
     result: string,
-    approach: 'greedy' | 'backtracking',
+    approach: 'greedy' | 'backtracking-basic' | 'backtracking-optimized',
     timestamp: Date
   }>>([]);
 
   const [benchmarkResults, setBenchmarkResults] = useState<{
     greedy: { time: number, result: string } | null,
-    backtracking: { time: number, result: string } | null
-  }>({ greedy: null, backtracking: null });
+    backtrackingBasic: { time: number, result: string } | null,
+    backtrackingOptimized: { time: number, result: string } | null
+  }>({ greedy: null, backtrackingBasic: null, backtrackingOptimized: null });
 
   const [isBenchmarking, setIsBenchmarking] = useState<boolean>(false);
 
@@ -183,11 +184,63 @@ function App() {
     return steps;
   };
 
-  function backtrackMax(numArr: string[], k: number, idx: number, steps: any[], path: string[], best: {val: string}) {
-    if (k === 0 || idx === numArr.length) {
-      const candidate = numArr.join('');
+  function findMaxHelper(arr: string[], k: number, steps: any[], path: string[], best: {val: string}) {
+    if (k === 0) {
+      const candidate = arr.join('');
       steps.push({
-        digits: [...numArr],
+        digits: [...arr],
+        desc: `End of path with no remaining swaps: ${candidate}${candidate > best.val ? ' (new best)' : ''}`,
+        highlight: [],
+        type: 'end',
+        path: [...path, candidate],
+      });
+      if (candidate > best.val) best.val = candidate;
+      return;
+    }
+    
+    for (let i = 0; i < arr.length - 1; i++) {
+      for (let j = i + 1; j < arr.length; j++) {
+        steps.push({
+          digits: [...arr],
+          desc: `Try swapping ${arr[i]} and ${arr[j]} at positions ${i + 1} and ${j + 1}.`,
+          highlight: [i, j],
+          type: 'try',
+          path: [...path],
+        });
+        
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+        
+        const current = arr.join('');
+        if (current > best.val) {
+          best.val = current;
+          steps.push({
+            digits: [...arr],
+            desc: `New maximum found: ${current}`,
+            highlight: [],
+            type: 'max',
+            path: [...path, current],
+          });
+        }
+        
+        findMaxHelper(arr, k - 1, steps, [...path, current], best);
+        
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+        steps.push({
+          digits: [...arr],
+          desc: `Backtrack: revert swap at positions ${i + 1} and ${j + 1}.`,
+          highlight: [i, j],
+          type: 'backtrack',
+          path: [...path],
+        });
+      }
+    }
+  }
+
+  function findMaxOptimizedHelper(arr: string[], k: number, curr: number, steps: any[], path: string[], best: {val: string}) {
+    if (k === 0 || curr >= arr.length - 1) {
+      const candidate = arr.join('');
+      steps.push({
+        digits: [...arr],
         desc: `End of path: ${candidate}${candidate > best.val ? ' (new best)' : ''}`,
         highlight: [],
         type: 'end',
@@ -196,48 +249,77 @@ function App() {
       if (candidate > best.val) best.val = candidate;
       return;
     }
-    let maxDigit = numArr[idx];
-    for (let i = idx + 1; i < numArr.length; i++) {
-      if (numArr[i] > maxDigit) maxDigit = numArr[i];
+    
+    let strMax = arr[curr];
+    for (let i = curr + 1; i < arr.length; i++) {
+      if (arr[i] > strMax) {
+        strMax = arr[i];
+      }
     }
-    if (maxDigit === numArr[idx]) {
+    
+    if (strMax === arr[curr]) {
       steps.push({
-        digits: [...numArr],
-        desc: `No better digit to swap at position ${idx + 1}.`,
-        highlight: [idx],
+        digits: [...arr],
+        desc: `Position ${curr + 1} already has the maximum digit ${strMax}. Moving to next position.`,
+        highlight: [curr],
         type: 'noop',
         path: [...path],
       });
-      backtrackMax(numArr, k, idx + 1, steps, path, best);
+      findMaxOptimizedHelper(arr, k, curr + 1, steps, path, best);
       return;
     }
-    for (let i = idx + 1; i < numArr.length; i++) {
-      if (numArr[i] === maxDigit) {
+    
+    let kRemaining = k - 1;
+    
+    for (let i = curr + 1; i < arr.length; i++) {
+      if (arr[i] === strMax) {
         steps.push({
-          digits: [...numArr],
-          desc: `Try swapping ${numArr[idx]} and ${numArr[i]} at positions ${idx + 1} and ${i + 1}.`,
-          highlight: [idx, i],
+          digits: [...arr],
+          desc: `Swapping ${arr[curr]} with maximum digit ${strMax} at position ${i + 1}.`,
+          highlight: [curr, i],
           type: 'try',
           path: [...path],
         });
-        [numArr[idx], numArr[i]] = [numArr[i], numArr[idx]];
-        backtrackMax(numArr, k - 1, idx + 1, steps, [...path, numArr.join('')], best);
-        [numArr[idx], numArr[i]] = [numArr[i], numArr[idx]];
+        
+        [arr[curr], arr[i]] = [arr[i], arr[curr]];
+        
+        const current = arr.join('');
+        if (current > best.val) {
+          best.val = current;
+          steps.push({
+            digits: [...arr],
+            desc: `New maximum found: ${current}`,
+            highlight: [],
+            type: 'max',
+            path: [...path, current],
+          });
+        }
+        
+        findMaxOptimizedHelper(arr, kRemaining, curr + 1, steps, [...path, current], best);
+        
+        [arr[curr], arr[i]] = [arr[i], arr[curr]];
         steps.push({
-          digits: [...numArr],
-          desc: `Backtrack: revert swap at positions ${idx + 1} and ${i + 1}.`,
-          highlight: [idx, i],
+          digits: [...arr],
+          desc: `Backtrack: revert swap at positions ${curr + 1} and ${i + 1}.`,
+          highlight: [curr, i],
           type: 'backtrack',
           path: [...path],
         });
       }
     }
   }
-
+  
   function getBacktrackingSteps(numStr: string, k: number) {
     const steps: any[] = [];
     const best = {val: numStr};
-    backtrackMax(numStr.split(''), k, 0, steps, [numStr], best);
+    const digits = numStr.split('');
+    
+    if (approach === 'backtracking-basic') {
+      findMaxHelper(digits, k, steps, [numStr], best);
+    } else if (approach === 'backtracking-optimized') {
+      findMaxOptimizedHelper(digits, k, 0, steps, [numStr], best);
+    }
+    
     return steps;
   }
 
@@ -247,11 +329,31 @@ function App() {
     setSteps([]);
     setHighlight(null);
     setTimeout(() => {
-      const [maximized, history, swapPairs] = maximizeNumber(number, swaps);
-      setResult(maximized);
+      let result, history, swapPairs;
+      
+      if (approach === 'greedy') {
+        [result, history, swapPairs] = maximizeNumber(number, swaps);
+      } else {
+        const best = {val: number};
+        const steps: any[] = [];
+        
+        if (approach === 'backtracking-basic') {
+          findMaxHelper(number.split(''), swaps, steps, [number], best);
+        } else {
+          findMaxOptimizedHelper(number.split(''), swaps, 0, steps, [number], best);
+        }
+        
+        result = best.val;
+        history = steps.filter(step => step.type === 'max' || step.type === 'end')
+          .map(step => `Found: ${step.digits.join('')}`);
+        swapPairs = [];
+      }
+      
+      setResult(result);
       setSteps(history);
       setIsCalculating(false);
-      addToHistory(maximized);
+      addToHistory(result);
+      
       if (swapPairs.length > 0) {
         let idx = 0;
         const animate = () => {
@@ -308,22 +410,33 @@ function App() {
     if (!number || swaps <= 0) return;
     
     setIsBenchmarking(true);
-    setBenchmarkResults({ greedy: null, backtracking: null });
+    setBenchmarkResults({ 
+      greedy: null, 
+      backtrackingBasic: null,
+      backtrackingOptimized: null 
+    });
     
     setTimeout(() => {
       const greedyStart = performance.now();
       const [greedyResult] = maximizeNumber(number, swaps);
       const greedyTime = performance.now() - greedyStart;
       
-      const backtrackStart = performance.now();
-      const steps: any[] = [];
-      const best = {val: number};
-      backtrackMax(number.split(''), swaps, 0, steps, [number], best);
-      const backtrackTime = performance.now() - backtrackStart;
+      const basicStart = performance.now();
+      const basicSteps: any[] = [];
+      const basicBest = {val: number};
+      findMaxHelper(number.split(''), swaps, basicSteps, [number], basicBest);
+      const basicTime = performance.now() - basicStart;
+      
+      const optimizedStart = performance.now();
+      const optimizedSteps: any[] = [];
+      const optimizedBest = {val: number};
+      findMaxOptimizedHelper(number.split(''), swaps, 0, optimizedSteps, [number], optimizedBest);
+      const optimizedTime = performance.now() - optimizedStart;
       
       setBenchmarkResults({
         greedy: { time: greedyTime, result: greedyResult },
-        backtracking: { time: backtrackTime, result: best.val }
+        backtrackingBasic: { time: basicTime, result: basicBest.val },
+        backtrackingOptimized: { time: optimizedTime, result: optimizedBest.val }
       });
       setIsBenchmarking(false);
     }, 100);
@@ -507,15 +620,22 @@ function App() {
                 <span className="approach-icon greedy-icon">⚡</span>
                 Greedy Approach
               </button>
-              <button className={approach === 'backtracking' ? 'active' : ''} onClick={() => setApproach('backtracking')}>
+              <button className={approach === 'backtracking-basic' ? 'active' : ''} onClick={() => setApproach('backtracking-basic')}>
                 <span className="approach-icon backtracking-icon">🔍</span>
-                Backtracking (Optimal)
+                Basic Backtracking
+              </button>
+              <button className={approach === 'backtracking-optimized' ? 'active' : ''} onClick={() => setApproach('backtracking-optimized')}>
+                <span className="approach-icon optimized-icon">🚀</span>
+                Optimized Backtracking
               </button>
             </div>
             <p className="approach-description">
               {approach === 'greedy' ? 
                 "The greedy approach swaps digits to maximize the number from left to right, always choosing the largest possible digit for each position." : 
-                "The backtracking approach explores all possible combinations of swaps to find the optimal solution that produces the maximum number."}
+                approach === 'backtracking-basic' ?
+                  "The basic backtracking approach explores all possible swap combinations (O((N²)ᴷ) time complexity) to find the optimal solution." :
+                  "The optimized backtracking approach smartly focuses on swapping with maximum digits (O(Nᴷ) time complexity) for better performance."
+              }
             </p>
             
             <button 
@@ -659,7 +779,7 @@ function App() {
 
           {animationSteps.length > 0 && currentStep >= 0 && (
             <div className="result-section visualization-section">
-              <h2>Visualization: {approach === 'greedy' ? 'Greedy Approach' : 'Backtracking (Optimal)'}</h2>
+              <h2>Visualization: {approach === 'greedy' ? 'Greedy Approach' : approach === 'backtracking-basic' ? 'Basic Backtracking' : 'Optimized Backtracking'}</h2>
               <div className="algorithm-status">
                 <span className="status-badge">{animationSteps[currentStep].type}</span>
                 <span className="step-count">Step {currentStep + 1} of {animationSteps.length}</span>
@@ -722,7 +842,7 @@ function App() {
           <div className="benchmark-section">
             <h2>Algorithm Performance Benchmark</h2>
             <p className="benchmark-description">
-              Compare the performance of both algorithms with your current input. 
+              Compare the performance of all three algorithms with your current input. 
               This will help you understand how computational complexity affects real execution time.
             </p>
             
@@ -734,7 +854,7 @@ function App() {
               {isBenchmarking ? 'Benchmarking...' : 'Run Performance Benchmark'}
             </button>
             
-            {(benchmarkResults.greedy || benchmarkResults.backtracking) && (
+            {(benchmarkResults.greedy || benchmarkResults.backtrackingBasic || benchmarkResults.backtrackingOptimized) && (
               <div className="benchmark-results">
                 <div className="benchmark-result-item">
                   <h3>Greedy Algorithm</h3>
@@ -751,33 +871,48 @@ function App() {
                 </div>
                 
                 <div className="benchmark-result-item">
-                  <h3>Backtracking Algorithm</h3>
+                  <h3>Basic Backtracking</h3>
                   <div className="benchmark-stats">
                     <div className="benchmark-time">
                       <span className="benchmark-label">Execution Time:</span>
-                      <span className="benchmark-value">{benchmarkResults.backtracking?.time.toFixed(2)} ms</span>
+                      <span className="benchmark-value">{benchmarkResults.backtrackingBasic?.time.toFixed(2)} ms</span>
                     </div>
                     <div className="benchmark-answer">
                       <span className="benchmark-label">Result:</span>
-                      <span className="benchmark-value">{benchmarkResults.backtracking?.result}</span>
+                      <span className="benchmark-value">{benchmarkResults.backtrackingBasic?.result}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="benchmark-result-item">
+                  <h3>Optimized Backtracking</h3>
+                  <div className="benchmark-stats">
+                    <div className="benchmark-time">
+                      <span className="benchmark-label">Execution Time:</span>
+                      <span className="benchmark-value">{benchmarkResults.backtrackingOptimized?.time.toFixed(2)} ms</span>
+                    </div>
+                    <div className="benchmark-answer">
+                      <span className="benchmark-label">Result:</span>
+                      <span className="benchmark-value">{benchmarkResults.backtrackingOptimized?.result}</span>
                     </div>
                   </div>
                 </div>
                 
                 <div className="benchmark-comparison">
                   <h3>Performance Comparison</h3>
-                  {benchmarkResults.greedy && benchmarkResults.backtracking && (
+                  {benchmarkResults.greedy && benchmarkResults.backtrackingBasic && benchmarkResults.backtrackingOptimized && (
                     <>
                       <div className="benchmark-bar-container">
                         <div className="benchmark-labels">
                           <span>Greedy</span>
-                          <span>Backtracking</span>
+                          <span>Basic Backtracking</span>
+                          <span>Optimized Backtracking</span>
                         </div>
                         <div className="benchmark-bars">
                           <div 
                             className="benchmark-bar greedy-bar" 
                             style={{ 
-                              width: `${Math.min(100, (benchmarkResults.greedy.time / Math.max(benchmarkResults.greedy.time, benchmarkResults.backtracking.time)) * 100)}%` 
+                              width: `${Math.min(100, (benchmarkResults.greedy.time / Math.max(benchmarkResults.greedy.time, benchmarkResults.backtrackingBasic.time, benchmarkResults.backtrackingOptimized.time)) * 100)}%` 
                             }}
                           >
                             {benchmarkResults.greedy.time.toFixed(2)} ms
@@ -785,23 +920,32 @@ function App() {
                           <div 
                             className="benchmark-bar backtracking-bar" 
                             style={{ 
-                              width: `${Math.min(100, (benchmarkResults.backtracking.time / Math.max(benchmarkResults.greedy.time, benchmarkResults.backtracking.time)) * 100)}%` 
+                              width: `${Math.min(100, (benchmarkResults.backtrackingBasic.time / Math.max(benchmarkResults.greedy.time, benchmarkResults.backtrackingBasic.time, benchmarkResults.backtrackingOptimized.time)) * 100)}%` 
                             }}
                           >
-                            {benchmarkResults.backtracking.time.toFixed(2)} ms
+                            {benchmarkResults.backtrackingBasic.time.toFixed(2)} ms
+                          </div>
+                          <div 
+                            className="benchmark-bar optimized-bar" 
+                            style={{ 
+                              width: `${Math.min(100, (benchmarkResults.backtrackingOptimized.time / Math.max(benchmarkResults.greedy.time, benchmarkResults.backtrackingBasic.time, benchmarkResults.backtrackingOptimized.time)) * 100)}%` 
+                            }}
+                          >
+                            {benchmarkResults.backtrackingOptimized.time.toFixed(2)} ms
                           </div>
                         </div>
                       </div>
                       
                       <div className="benchmark-insights">
                         <p>
-                          {benchmarkResults.greedy.result === benchmarkResults.backtracking.result ? 
-                            "Both algorithms produced the same result. " : 
+                          {benchmarkResults.greedy.result === benchmarkResults.backtrackingBasic.result && 
+                           benchmarkResults.backtrackingBasic.result === benchmarkResults.backtrackingOptimized.result ? 
+                            "All three algorithms produced the same result. " : 
                             "The algorithms produced different results. This demonstrates that the greedy approach doesn't always find the optimal solution. "
                           }
-                          {benchmarkResults.greedy.time < benchmarkResults.backtracking.time ? 
-                            `The greedy algorithm was ${(benchmarkResults.backtracking.time / benchmarkResults.greedy.time).toFixed(1)}x faster.` : 
-                            `The backtracking algorithm was ${(benchmarkResults.greedy.time / benchmarkResults.backtracking.time).toFixed(1)}x faster.`
+                          {benchmarkResults.optimized ? 
+                            `The optimized backtracking algorithm is ${(benchmarkResults.backtrackingBasic.time / benchmarkResults.backtrackingOptimized.time).toFixed(2)}x faster than the basic backtracking algorithm, demonstrating the value of algorithmic optimization.` : 
+                            ""
                           }
                         </p>
                       </div>
@@ -835,10 +979,16 @@ function App() {
                 Greedy
               </button>
               <button 
-                className={activeAlgoTab === 'backtracking' ? 'active' : ''}
-                onClick={() => setActiveAlgoTab('backtracking')}
+                className={activeAlgoTab === 'backtracking-basic' ? 'active' : ''}
+                onClick={() => setActiveAlgoTab('backtracking-basic')}
               >
-                Backtracking
+                Basic Backtracking
+              </button>
+              <button 
+                className={activeAlgoTab === 'backtracking-optimized' ? 'active' : ''}
+                onClick={() => setActiveAlgoTab('backtracking-optimized')}
+              >
+                Optimized Backtracking
               </button>
             </div>
             
@@ -849,29 +999,34 @@ function App() {
                     <tr>
                       <th>Feature</th>
                       <th>Greedy Approach</th>
-                      <th>Backtracking Approach</th>
+                      <th>Basic Backtracking</th>
+                      <th>Optimized Backtracking</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <td>Time Complexity</td>
                       <td>O(n²)</td>
-                      <td>O(n! × k)</td>
+                      <td>O((n²)ᴷ)</td>
+                      <td>O(nᴷ)</td>
                     </tr>
                     <tr>
                       <td>Space Complexity</td>
                       <td>O(n)</td>
-                      <td>O(n × k)</td>
+                      <td>O(n)</td>
+                      <td>O(n)</td>
                     </tr>
                     <tr>
                       <td>Optimal Solution</td>
                       <td>Not always guaranteed</td>
                       <td>Always guaranteed</td>
+                      <td>Always guaranteed</td>
                     </tr>
                     <tr>
                       <td>Best For</td>
-                      <td>Larger inputs, performance-critical scenarios</td>
-                      <td>Smaller inputs, when optimality is required</td>
+                      <td>Very large inputs, performance-critical scenarios</td>
+                      <td>Small inputs, educational purposes</td>
+                      <td>Medium inputs, when optimality is required</td>
                     </tr>
                   </tbody>
                 </table>
@@ -881,7 +1036,10 @@ function App() {
                     <strong>When to use Greedy:</strong> Use the greedy approach when dealing with larger numbers or when performance is critical. It works well for most practical cases and has predictable execution time.
                   </p>
                   <p>
-                    <strong>When to use Backtracking:</strong> Use the backtracking approach when you need a guaranteed optimal solution, especially for smaller inputs or when the greedy approach is known to fail for specific patterns.
+                    <strong>When to use Basic Backtracking:</strong> Use for small inputs or educational purposes to understand the exhaustive approach to the problem. It explores all possible combinations but suffers from exponential complexity.
+                  </p>
+                  <p>
+                    <strong>When to use Optimized Backtracking:</strong> Use when you need a guaranteed optimal solution with better performance than the basic backtracking approach. This approach strategically focuses on maximum digits, reducing the search space.
                   </p>
                 </div>
               </div>
@@ -933,66 +1091,166 @@ function App() {
                   
                   <h4>Edge Cases</h4>
                   <p>
-                    The greedy approach can fail to find the optimal solution when the best choice at a position doesn't lead to the overall best result. Consider "5432" with 1 swap - greedy would not swap anything (as larger digits are already at the left), but swapping 5 and 2 would yield "2435".
+                    The greedy approach can fail to find the optimal solution when the best choice at a position doesn't lead to the overall best result. Consider "5432" with 1 swap - greedy would swap 5 and 2 resulting in "2435" but the optimal solution is "5423" by swapping 3 and 2.
                   </p>
                 </div>
               </div>
             )}
             
-            {activeAlgoTab === 'backtracking' && (
+            {activeAlgoTab === 'backtracking-basic' && (
               <div className="algo-details">
-                <h3>Backtracking Algorithm</h3>
+                <h3>Basic Backtracking Algorithm</h3>
                 
                 <div className="complexity-section">
                   <div className="complexity-item">
                     <h4>Time Complexity</h4>
-                    <div className="complexity">O(n! × k)</div>
-                    <p>Where n is the number of digits and k is the number of swaps.</p>
+                    <div className="complexity">O((n²)ᴷ)</div>
+                    <p>Where n is the number of digits and K is the number of swaps.</p>
                   </div>
                   <div className="complexity-item">
                     <h4>Space Complexity</h4>
-                    <div className="complexity">O(n × k)</div>
-                    <p>Due to recursion and storing paths.</p>
+                    <div className="complexity">O(n)</div>
+                    <p>Space needed to store the digits.</p>
                   </div>
                 </div>
                 
                 <div className="algo-insight">
                   <h4>How it Works</h4>
                   <p>
-                    The backtracking algorithm explores all possible swap combinations:
+                    The basic backtracking algorithm tries all possible swap combinations:
                   </p>
                   <ol>
-                    <li>Start with the given number and no swaps made.</li>
-                    <li>For each position, try swapping with each position to the right.</li>
-                    <li>Recursively explore the result of each swap.</li>
-                    <li>Keep track of the maximum number found so far.</li>
-                    <li>If we've used all swaps or reached the end, compare with the current maximum.</li>
-                    <li>Backtrack (undo swaps) and try different combinations.</li>
+                    <li>Consider all possible pairs of digits to swap.</li>
+                    <li>For each pair, perform the swap.</li>
+                    <li>Check if the new number is larger than the current maximum.</li>
+                    <li>Recursively explore further swaps with the remaining K-1 swaps.</li>
+                    <li>Backtrack by reverting the swap and trying other combinations.</li>
                   </ol>
+                  
+                  <h4>Pseudocode</h4>
+                  <pre>
+{`function FINDMAX(M, K):
+    MAX = M
+    FINDMAXHELPER(M, K, MAX)
+    return MAX
+
+function FINDMAXHELPER(M, K, MAX):
+    if K = 0:
+        return
+    
+    for i = 0 to length(M) - 1:
+        for j = i + 1 to length(M) - 1:
+            // Swap M[i] and M[j]
+            M[i], M[j] = M[j], M[i]
+            
+            // Update MAX if needed
+            if M > MAX:
+                MAX = M
+            
+            // Recurse
+            FINDMAXHELPER(M, K - 1, MAX)
+            
+            // Backtrack
+            M[i], M[j] = M[j], M[i]`}
+                  </pre>
                   
                   <h4>Advantages</h4>
                   <ul>
                     <li>Guarantees the optimal solution</li>
-                    <li>Explores all possible combinations</li>
-                    <li>Can handle edge cases where greedy fails</li>
+                    <li>Thorough exploration of all possible swap combinations</li>
                   </ul>
                   
                   <h4>Limitations</h4>
                   <ul>
-                    <li>Exponential time complexity makes it inefficient for large inputs</li>
-                    <li>High memory usage due to recursion</li>
-                    <li>Overkill for many simple cases</li>
+                    <li>Exponential time complexity: O((n²)ᴷ)</li>
+                    <li>Extremely slow for large inputs or many swaps</li>
+                    <li>Explores many redundant states</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+            
+            {activeAlgoTab === 'backtracking-optimized' && (
+              <div className="algo-details">
+                <h3>Optimized Backtracking Algorithm</h3>
+                
+                <div className="complexity-section">
+                  <div className="complexity-item">
+                    <h4>Time Complexity</h4>
+                    <div className="complexity">O(nᴷ)</div>
+                    <p>Where n is the number of digits and K is the number of swaps.</p>
+                  </div>
+                  <div className="complexity-item">
+                    <h4>Space Complexity</h4>
+                    <div className="complexity">O(n)</div>
+                    <p>Space needed to store the digits.</p>
+                  </div>
+                </div>
+                
+                <div className="algo-insight">
+                  <h4>How it Works</h4>
+                  <p>
+                    The optimized backtracking algorithm strategically focuses on swapping with maximum digits:
+                  </p>
+                  <ol>
+                    <li>Start from left and process positions one by one.</li>
+                    <li>For each position, find the maximum digit to the right.</li>
+                    <li>If current digit is not already the maximum, swap with one of the maximum digits.</li>
+                    <li>Recursively move to the next position with remaining K-1 swaps.</li>
+                    <li>Skip positions where current digit is already the maximum.</li>
+                  </ol>
+                  
+                  <h4>Pseudocode</h4>
+                  <pre>
+{`function FINDMAX(M, K):
+    MAX = M
+    FINDMAXHELPER(M, K, MAX, 0)
+    return MAX
+
+function FINDMAXHELPER(M, K, MAX, CURR):
+    if K = 0 or CURR >= length(M) - 1:
+        return
+    
+    // Find max digit from CURR to end
+    STRMAX = M[CURR]
+    for i = CURR + 1 to length(M) - 1:
+        if M[i] > STRMAX:
+            STRMAX = M[i]
+    
+    // If current digit is already max, skip to next position
+    if STRMAX = M[CURR]:
+        FINDMAXHELPER(M, K, MAX, CURR + 1)
+        return
+    
+    // Try swaps with each occurrence of max digit
+    for i = CURR + 1 to length(M) - 1:
+        if M[i] = STRMAX:
+            // Swap M[CURR] and M[i]
+            M[CURR], M[i] = M[i], M[CURR]
+            
+            // Update MAX if needed
+            if M > MAX:
+                MAX = M
+            
+            // Recurse to next position
+            FINDMAXHELPER(M, K - 1, MAX, CURR + 1)
+            
+            // Backtrack
+            M[CURR], M[i] = M[i], M[CURR]`}
+                  </pre>
+                  
+                  <h4>Advantages</h4>
+                  <ul>
+                    <li>Guaranteed optimal solution</li>
+                    <li>Much faster than basic backtracking: O(nᴷ) vs O((n²)ᴷ)</li>
+                    <li>Reduces search space by focusing on maximum digits</li>
+                    <li>Can handle medium-sized inputs efficiently</li>
                   </ul>
                   
-                  <h4>Optimization Techniques</h4>
+                  <h4>Optimization Insights</h4>
                   <p>
-                    The backtracking approach can be optimized by:
+                    This approach recognizes that to maximize a number, we should always try to place larger digits in more significant positions. By focusing on swapping with only the maximum digits and processing from left to right, we dramatically reduce the search space while still guaranteeing an optimal solution.
                   </p>
-                  <ul>
-                    <li>Branch and bound: Skip exploring paths that cannot lead to better solutions.</li>
-                    <li>Memoization: Store results of already computed subproblems.</li>
-                    <li>Early termination: Exit when a known optimal solution is found.</li>
-                  </ul>
                 </div>
               </div>
             )}
@@ -1005,7 +1263,8 @@ function App() {
           <h3>About The Dance of Digits Algorithm</h3>
           <p>This algorithmic challenge focuses on maximizing a number by performing exactly K swaps between any two digits.</p>
           <p><strong>Greedy Approach:</strong> Always places the largest available digit in the leftmost possible position. While efficient, it may not always find the optimal solution for all inputs.</p>
-          <p><strong>Backtracking Approach:</strong> Systematically explores all possible swap combinations to guarantee finding the largest possible number. This approach is optimal but has higher computational complexity.</p>
+          <p><strong>Basic Backtracking:</strong> Exhaustively tries all possible combinations of swaps to guarantee finding the optimal solution. Has O((n²)ᴷ) time complexity.</p>
+          <p><strong>Optimized Backtracking:</strong> Strategically focuses on swapping with maximum digits, reducing complexity to O(nᴷ) while still guaranteeing the optimal solution.</p>
         </div>
       </footer>
     </div>
