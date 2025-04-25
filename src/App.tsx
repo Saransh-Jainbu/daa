@@ -9,9 +9,10 @@ function App() {
   const [steps, setSteps] = useState<string[]>([])
   const [showExplanation, setShowExplanation] = useState<boolean>(false)
   const [highlight, setHighlight] = useState<{from: number, to: number} | null>(null)
-  const [animationSteps, setAnimationSteps] = useState<Array<{digits: string[], from: number, to: number, desc: string, type: 'highlight' | 'swap'}>>([]);
+  const [animationSteps, setAnimationSteps] = useState<Array<{digits: string[], from?: number, to?: number, desc: string, type: 'highlight' | 'swap' | 'noop' | 'try' | 'end' | 'backtrack', highlight?: number[], path?: string[]}>>([]);
   const [currentStep, setCurrentStep] = useState<number>(-1);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [approach, setApproach] = useState<'greedy' | 'backtracking'>('greedy');
   const resultRef = useRef<HTMLDivElement>(null)
 
   const maximizeNumber = (numStr: string, k: number): [string, string[], Array<{from: number, to: number}>] => {
@@ -80,6 +81,64 @@ function App() {
     return steps;
   };
 
+  function backtrackMax(numArr: string[], k: number, idx: number, steps: any[], path: string[], best: {val: string}) {
+    if (k === 0 || idx === numArr.length) {
+      const candidate = numArr.join('');
+      steps.push({
+        digits: [...numArr],
+        desc: `End of path: ${candidate}${candidate > best.val ? ' (new best)' : ''}`,
+        highlight: [],
+        type: 'end',
+        path: [...path, candidate],
+      });
+      if (candidate > best.val) best.val = candidate;
+      return;
+    }
+    let maxDigit = numArr[idx];
+    for (let i = idx + 1; i < numArr.length; i++) {
+      if (numArr[i] > maxDigit) maxDigit = numArr[i];
+    }
+    if (maxDigit === numArr[idx]) {
+      steps.push({
+        digits: [...numArr],
+        desc: `No better digit to swap at position ${idx + 1}.`,
+        highlight: [idx],
+        type: 'noop',
+        path: [...path],
+      });
+      backtrackMax(numArr, k, idx + 1, steps, path, best);
+      return;
+    }
+    for (let i = idx + 1; i < numArr.length; i++) {
+      if (numArr[i] === maxDigit) {
+        steps.push({
+          digits: [...numArr],
+          desc: `Try swapping ${numArr[idx]} and ${numArr[i]} at positions ${idx + 1} and ${i + 1}.`,
+          highlight: [idx, i],
+          type: 'try',
+          path: [...path],
+        });
+        [numArr[idx], numArr[i]] = [numArr[i], numArr[idx]];
+        backtrackMax(numArr, k - 1, idx + 1, steps, [...path, numArr.join('')], best);
+        [numArr[idx], numArr[i]] = [numArr[i], numArr[idx]]; // backtrack
+        steps.push({
+          digits: [...numArr],
+          desc: `Backtrack: revert swap at positions ${idx + 1} and ${i + 1}.`,
+          highlight: [idx, i],
+          type: 'backtrack',
+          path: [...path],
+        });
+      }
+    }
+  }
+
+  function getBacktrackingSteps(numStr: string, k: number) {
+    const steps: any[] = [];
+    const best = {val: numStr};
+    backtrackMax(numStr.split(''), k, 0, steps, [numStr], best);
+    return steps;
+  }
+
   const handleCalculate = () => {
     if (!number || swaps <= 0) return;
     setIsCalculating(true);
@@ -115,14 +174,19 @@ function App() {
     setCurrentStep(-1);
     setAnimationSteps([]);
     setTimeout(() => {
-      const steps = maximizeNumberForAnimation(number, swaps);
+      let steps;
+      if (approach === 'greedy') {
+        steps = maximizeNumberForAnimation(number, swaps);
+      } else {
+        steps = getBacktrackingSteps(number, swaps);
+      }
       setAnimationSteps(steps);
       setCurrentStep(0);
       animateSteps(steps);
     }, 500);
   };
 
-  const animateSteps = (steps: Array<{digits: string[], from: number, to: number, desc: string, type: 'highlight' | 'swap'}>) => {
+  const animateSteps = (steps: Array<{digits: string[], from?: number, to?: number, desc: string, type: 'highlight' | 'swap' | 'noop' | 'try' | 'end' | 'backtrack', highlight?: number[], path?: string[]}>) => {
     let idx = 0;
     function next() {
       setCurrentStep(idx);
@@ -162,7 +226,27 @@ function App() {
         </div>
       </div>
       
+      <div className="algo-selection">
+        <h2>Select Algorithm Approach</h2>
+        <div className="approach-toggle">
+          <button className={approach === 'greedy' ? 'active' : ''} onClick={() => setApproach('greedy')}>
+            <span className="approach-icon greedy-icon">⚡</span>
+            Greedy Approach
+          </button>
+          <button className={approach === 'backtracking' ? 'active' : ''} onClick={() => setApproach('backtracking')}>
+            <span className="approach-icon backtracking-icon">🔍</span>
+            Backtracking (Optimal)
+          </button>
+        </div>
+        <p className="approach-description">
+          {approach === 'greedy' ? 
+            "The greedy approach swaps digits to maximize the number from left to right, always choosing the largest possible digit for each position." : 
+            "The backtracking approach explores all possible combinations of swaps to find the optimal solution that produces the maximum number."}
+        </p>
+      </div>
+
       <div className="input-section">
+        <h2>Input Parameters</h2>
         <div className="input-group">
           <label htmlFor="number">Enter a number:</label>
           <input 
@@ -186,20 +270,22 @@ function App() {
           />
         </div>
         
-        <button 
-          onClick={handleCalculate}
-          disabled={isCalculating || !number || swaps <= 0}
-          className={isCalculating ? 'calculating' : ''}
-        >
-          {isCalculating ? 'Dancing...' : 'Maximize!'}
-        </button>
-        <button 
-          onClick={handleVisualize}
-          disabled={isAnimating || !number || swaps <= 0}
-          className={isAnimating ? 'calculating' : ''}
-        >
-          {isAnimating ? 'Visualizing...' : 'Visualize Algorithm!'}
-        </button>
+        <div className="button-group">
+          <button 
+            onClick={handleCalculate}
+            disabled={isCalculating || !number || swaps <= 0}
+            className={isCalculating ? 'calculating' : 'primary-button'}
+          >
+            {isCalculating ? 'Dancing...' : 'Maximize Number'}
+          </button>
+          <button 
+            onClick={handleVisualize}
+            disabled={isAnimating || !number || swaps <= 0}
+            className={isAnimating ? 'calculating' : 'visualize-button'}
+          >
+            {isAnimating ? 'Visualizing...' : 'Visualize Algorithm'}
+          </button>
+        </div>
       </div>
       
       {result && (
@@ -237,27 +323,21 @@ function App() {
       )}
 
       {animationSteps.length > 0 && currentStep >= 0 && (
-        <div className="result-section">
-          <h2>Visualization</h2>
+        <div className="result-section visualization-section">
+          <h2>Visualization: {approach === 'greedy' ? 'Greedy Approach' : 'Backtracking (Optimal)'}</h2>
+          <div className="algorithm-status">
+            <span className="status-badge">{animationSteps[currentStep].type}</span>
+            <span className="step-count">Step {currentStep + 1} of {animationSteps.length}</span>
+          </div>
+          
           <div className="pointer-row">
             {animationSteps[currentStep].digits.map((_, idx) => {
-              const isCurrent = idx === animationSteps[currentStep].from;
-              const isMax = idx === animationSteps[currentStep].to;
+              const isHighlight = animationSteps[currentStep].highlight && animationSteps[currentStep].highlight.includes(idx);
               return (
                 <div key={idx} className="pointer-cell">
-                  {animationSteps[currentStep].type === 'highlight' && isCurrent && (
-                    <div className="pointer-label current-label">Current
-                      <div className="arrow-down current-arrow" />
-                    </div>
-                  )}
-                  {animationSteps[currentStep].type === 'highlight' && isMax && (
-                    <div className="pointer-label max-label">Max
-                      <div className="arrow-down max-arrow" />
-                    </div>
-                  )}
-                  {animationSteps[currentStep].type === 'swap' && (isCurrent || isMax) && (
-                    <div className="pointer-label swap-label">Swapped
-                      <div className="arrow-down swap-arrow" />
+                  {isHighlight && (
+                    <div className="pointer-label algo-label">{approach === 'greedy' ? (animationSteps[currentStep].type === 'highlight' ? (idx === animationSteps[currentStep].from ? 'Current' : 'Max') : 'Swapped') : 'Focus'}
+                      <div className="arrow-down algo-arrow" />
                     </div>
                   )}
                 </div>
@@ -266,7 +346,7 @@ function App() {
           </div>
           <div className={`result-display animate${animationSteps[currentStep].type === 'swap' ? ' swapped' : ''}`}>
             {animationSteps[currentStep].digits.map((digit, idx) => {
-              const isSwapped = idx === animationSteps[currentStep].from || idx === animationSteps[currentStep].to;
+              const isSwapped = animationSteps[currentStep].highlight && animationSteps[currentStep].highlight.includes(idx);
               return (
                 <span
                   key={idx}
@@ -279,17 +359,37 @@ function App() {
           </div>
           <div className="step-desc">{animationSteps[currentStep].desc}</div>
           <div className="step-controls">
-            <button onClick={() => setCurrentStep(s => Math.max(0, s - 1))} disabled={currentStep === 0 || isAnimating}>Prev</button>
-            <span>Step {currentStep + 1} / {animationSteps.length}</span>
-            <button onClick={() => setCurrentStep(s => Math.min(animationSteps.length - 1, s + 1))} disabled={currentStep === animationSteps.length - 1 || isAnimating}>Next</button>
+            <button 
+              onClick={() => setCurrentStep(s => Math.max(0, s - 1))} 
+              disabled={currentStep === 0 || isAnimating}
+              className="control-button prev-button"
+            >
+              Previous Step
+            </button>
+            <button 
+              onClick={() => setCurrentStep(0)} 
+              disabled={currentStep === 0 || isAnimating}
+              className="control-button reset-button"
+            >
+              Reset
+            </button>
+            <button 
+              onClick={() => setCurrentStep(s => Math.min(animationSteps.length - 1, s + 1))} 
+              disabled={currentStep === animationSteps.length - 1 || isAnimating}
+              className="control-button next-button"
+            >
+              Next Step
+            </button>
           </div>
         </div>
       )}
       
       <footer>
         <div className="algo-info">
-          <h3>About This Algorithm</h3>
-          <p>This solution uses a greedy approach, always swapping to get the largest possible digit at each position from left to right.</p>
+          <h3>About The Dance of Digits Algorithm</h3>
+          <p>This algorithmic challenge focuses on maximizing a number by performing exactly K swaps between any two digits.</p>
+          <p><strong>Greedy Approach:</strong> Always places the largest available digit in the leftmost possible position. While efficient, it may not always find the optimal solution for all inputs.</p>
+          <p><strong>Backtracking Approach:</strong> Systematically explores all possible swap combinations to guarantee finding the largest possible number. This approach is optimal but has higher computational complexity.</p>
         </div>
       </footer>
     </div>
