@@ -171,6 +171,13 @@ header h1 {
   border: var(--card-border);
 }
 
+.input-section h2 {
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
 .input-group {
   display: flex;
   flex-direction: column;
@@ -190,13 +197,18 @@ header h1 {
   font-size: 1.1rem;
   transition: border-color 0.3s, box-shadow 0.3s;
   background: var(--light-bg);
+  color: var(--text-color); /* Text color */
+  caret-color: var(--primary-color); /* Cursor color */
 }
 
-.input-group input:focus {
+.input-group input:focus,
+.input-group input:active,
+.input-group input:focus-visible {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15);
   background: white;
+  color: var(--text-color);
 }
 
 .input-section button {
@@ -492,6 +504,106 @@ footer {
   font-size: 1.05rem;
 }
 
+/* Algorithm Selection Section */
+.algo-selection {
+  background: var(--card-bg);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  border: var(--card-border);
+  text-align: center;
+}
+
+.algo-selection h2 {
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.approach-icon {
+  display: inline-block;
+  font-size: 1.3rem;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.approach-description {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--light-bg);
+  border-radius: 10px;
+  font-size: 1rem;
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+/* Button Groups */
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.primary-button {
+  flex: 1;
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+}
+
+.visualize-button {
+  flex: 1;
+  background: linear-gradient(45deg, var(--accent-color), #b5179e);
+}
+
+/* Visualization Section Enhancements */
+.visualization-section {
+  position: relative;
+}
+
+.algorithm-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.status-badge {
+  background: var(--accent-color);
+  color: white;
+  padding: 0.5rem 1.2rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  text-transform: capitalize;
+}
+
+.step-count {
+  background: var(--light-bg);
+  padding: 0.6rem 1.2rem;
+  border-radius: 20px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* Step Controls */
+.control-button {
+  padding: 0.8rem 1.5rem;
+  font-size: 0.9rem;
+}
+
+.prev-button {
+  background: linear-gradient(45deg, #4cc9f0, #4895ef);
+}
+
+.next-button {
+  background: linear-gradient(45deg, var(--accent-color), #b5179e);
+}
+
+.reset-button {
+  background: var(--light-text);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   #root {
@@ -541,5 +653,19 @@ footer {
   .pointer-label {
     font-size: 0.7rem;
     padding: 0.3rem;
+  }
+  
+  .button-group {
+    flex-direction: column;
+  }
+  
+  .step-controls {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .control-button {
+    flex: 1;
+    min-width: 40%;
   }
 }
