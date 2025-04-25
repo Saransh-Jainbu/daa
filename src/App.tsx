@@ -329,7 +329,7 @@ function App() {
     setSteps([]);
     setHighlight(null);
     setTimeout(() => {
-      let result, history, swapPairs;
+      let result: string, history: string[], swapPairs: Array<{from: number, to: number}>;
       
       if (approach === 'greedy') {
         [result, history, swapPairs] = maximizeNumber(number, swaps);
@@ -943,7 +943,7 @@ function App() {
                             "All three algorithms produced the same result. " : 
                             "The algorithms produced different results. This demonstrates that the greedy approach doesn't always find the optimal solution. "
                           }
-                          {benchmarkResults.optimized ? 
+                          {benchmarkResults.backtrackingOptimized ? 
                             `The optimized backtracking algorithm is ${(benchmarkResults.backtrackingBasic.time / benchmarkResults.backtrackingOptimized.time).toFixed(2)}x faster than the basic backtracking algorithm, demonstrating the value of algorithmic optimization.` : 
                             ""
                           }
