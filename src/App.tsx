@@ -1012,9 +1012,9 @@ function App() {
                     </tr>
                     <tr>
                       <td>Space Complexity</td>
-                      <td>O(n)</td>
-                      <td>O(n)</td>
-                      <td>O(n)</td>
+                      <td>O(k)</td>
+                      <td>O(k)</td>
+                      <td>O(k)</td>
                     </tr>
                     <tr>
                       <td>Optimal Solution</td>
