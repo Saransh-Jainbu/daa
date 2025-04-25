@@ -604,7 +604,238 @@ footer {
   background: var(--light-text);
 }
 
-/* Responsive Design */
+/* Info button for algorithm details */
+.info-button {
+  margin-top: 1.5rem;
+  background: transparent;
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
+  padding: 0.8rem 1.5rem;
+  font-size: 0.95rem;
+  box-shadow: none;
+}
+
+.info-button:hover {
+  background: rgba(67, 97, 238, 0.1);
+  transform: translateY(-3px);
+}
+
+.info-icon {
+  margin-right: 0.5rem;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 2rem;
+  overflow-y: auto;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 900px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 2rem;
+  position: relative;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+  animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-content h2 {
+  color: var(--primary-color);
+  margin-top: 0;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  background: none;
+  border: none;
+  color: var(--light-text);
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: none;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: var(--accent-color);
+  transform: none;
+  box-shadow: none;
+}
+
+/* Modal Tabs */
+.modal-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--light-bg);
+  padding-bottom: 1rem;
+}
+
+.modal-tabs button {
+  background: transparent;
+  border: none;
+  color: var(--light-text);
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.modal-tabs button:hover {
+  color: var(--primary-color);
+  background: rgba(67, 97, 238, 0.1);
+  transform: translateY(-2px);
+}
+
+.modal-tabs button.active {
+  color: var(--primary-color);
+  background: rgba(67, 97, 238, 0.1);
+  font-weight: 600;
+  box-shadow: 0 2px 0 var(--primary-color);
+}
+
+/* Algorithm Comparison */
+.algo-comparison {
+  padding: 0 1rem;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 1rem;
+  text-align: left;
+  border: 1px solid var(--light-bg);
+}
+
+.comparison-table th {
+  background: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+.comparison-table tr:nth-child(even) {
+  background: var(--light-bg);
+}
+
+.comparison-table td:first-child {
+  font-weight: 600;
+  width: 30%;
+}
+
+.comparison-summary {
+  background: var(--light-bg);
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.comparison-summary p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+/* Algorithm Details */
+.algo-details {
+  padding: 0 1rem;
+}
+
+.algo-details h3 {
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.complexity-section {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.complexity-item {
+  flex: 1;
+  background: var(--light-bg);
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.complexity-item h4 {
+  margin-top: 0;
+  color: var(--text-color);
+  font-size: 1.1rem;
+}
+
+.complexity {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 1rem 0;
+  color: var(--secondary-color);
+}
+
+.algo-insight {
+  margin-top: 2rem;
+}
+
+.algo-insight h4 {
+  color: var(--primary-color);
+  font-size: 1.3rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--light-bg);
+  padding-bottom: 0.5rem;
+}
+
+.algo-insight p, 
+.algo-insight li {
+  line-height: 1.7;
+  margin-bottom: 0.7rem;
+}
+
+.algo-insight ol,
+.algo-insight ul {
+  padding-left: 2rem;
+  margin-bottom: 2rem;
+}
+
 @media (max-width: 768px) {
   #root {
     padding: 1rem;
@@ -667,5 +898,30 @@ footer {
   .control-button {
     flex: 1;
     min-width: 40%;
+  }
+  
+  .modal-content {
+    padding: 1.5rem;
+    width: 95%;
+  }
+  
+  .complexity-section {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .modal-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .modal-tabs button {
+    flex: 1;
+    min-width: 120px;
+  }
+  
+  .comparison-table td,
+  .comparison-table th {
+    padding: 0.8rem;
+    font-size: 0.9rem;
   }
 }
