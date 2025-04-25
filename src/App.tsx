@@ -520,10 +520,10 @@ function App() {
             )}
             
             {activeAlgoTab === 'backtracking' && (
-              <div className="algo-details"></div>
+              <div className="algo-details">
                 <h3>Backtracking Algorithm</h3>
                 
-                <div className="complexity-section"></div>
+                <div className="complexity-section">
                   <div className="complexity-item">
                     <h4>Time Complexity</h4>
                     <div className="complexity">O(n! × k)</div>
@@ -536,7 +536,7 @@ function App() {
                   </div>
                 </div>
                 
-                <div className="algo-insight"></div>
+                <div className="algo-insight">
                   <h4>How it Works</h4>
                   <p>
                     The backtracking algorithm explores all possible swap combinations:
