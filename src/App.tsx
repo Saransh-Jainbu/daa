@@ -1057,7 +1057,7 @@ function App() {
                   </div>
                   <div className="complexity-item">
                     <h4>Space Complexity</h4>
-                    <div className="complexity">O(n)</div>
+                    <div className="complexity">O(k)</div>
                     <p>Only requires space to store the digits.</p>
                   </div>
                 </div>
@@ -1109,7 +1109,7 @@ function App() {
                   </div>
                   <div className="complexity-item">
                     <h4>Space Complexity</h4>
-                    <div className="complexity">O(n)</div>
+                    <div className="complexity">O(k)</div>
                     <p>Space needed to store the digits.</p>
                   </div>
                 </div>
@@ -1182,7 +1182,7 @@ function FINDMAXHELPER(M, K, MAX):
                   </div>
                   <div className="complexity-item">
                     <h4>Space Complexity</h4>
-                    <div className="complexity">O(n)</div>
+                    <div className="complexity">O(k)</div>
                     <p>Space needed to store the digits.</p>
                   </div>
                 </div>
