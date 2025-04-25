@@ -211,6 +211,38 @@ header h1 {
   color: var(--text-color);
 }
 
+/* Input with button (for random number generator) */
+.input-with-button {
+  position: relative;
+  display: flex;
+}
+
+.input-with-button input {
+  flex: 1;
+  padding-right: 3.5rem;
+}
+
+.random-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 3.5rem;
+  border-radius: 0 10px 10px 0;
+  background: var(--secondary-color);
+  font-size: 1.3rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.random-button:hover {
+  background: var(--primary-color);
+  transform: none;
+}
+
 .input-section button {
   margin-top: 0.5rem;
 }
@@ -836,6 +868,514 @@ footer {
   margin-bottom: 2rem;
 }
 
+/* History Section */
+.history-section {
+  background: var(--card-bg);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  border: var(--card-border);
+  margin-top: 2rem;
+}
+
+.history-section h2 {
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.history-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.clear-history-button {
+  background: var(--light-text);
+  padding: 0.7rem 1.5rem;
+  font-size: 0.9rem;
+}
+
+.clear-history-button:hover {
+  background: var(--accent-color);
+}
+
+.history-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.history-item {
+  background: var(--light-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.history-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.history-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.history-approach-badge {
+  background: var(--primary-color);
+  color: white;
+  text-transform: capitalize;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.history-time {
+  color: var(--light-text);
+  font-size: 0.9rem;
+}
+
+.history-details {
+  margin-bottom: 1.5rem;
+}
+
+.history-input {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.history-result {
+  font-size: 1.1rem;
+}
+
+.history-rerun-button {
+  width: 100%;
+  background: transparent;
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
+  padding: 0.7rem;
+  font-size: 0.9rem;
+  box-shadow: none;
+}
+
+.history-rerun-button:hover {
+  background: rgba(67, 97, 238, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(67, 97, 238, 0.2);
+}
+
+/* Benchmark Section */
+.benchmark-section {
+  background: var(--card-bg);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  border: var(--card-border);
+  margin-top: 2rem;
+}
+
+.benchmark-section h2 {
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.benchmark-description {
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+  color: var(--text-color);
+}
+
+.benchmark-button {
+  background: linear-gradient(45deg, var(--secondary-color), #6930c3);
+  display: block;
+  margin: 0 auto;
+}
+
+.benchmark-results {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.benchmark-result-item {
+  background: var(--light-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.benchmark-result-item h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--secondary-color);
+  font-size: 1.3rem;
+  border-bottom: 1px solid rgba(67, 97, 238, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.benchmark-stats {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.benchmark-time, .benchmark-answer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.benchmark-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--light-text);
+}
+
+.benchmark-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.benchmark-comparison {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1.8rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
+}
+
+.benchmark-comparison h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+  text-align: center;
+  font-size: 1.3rem;
+}
+
+.benchmark-bar-container {
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.benchmark-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.benchmark-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.benchmark-bar {
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 1rem;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: width 1s cubic-bezier(0.19, 1, 0.22, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.benchmark-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+  background-size: 200% 100%;
+  animation: shimmer-bar 2s infinite;
+}
+
+@keyframes shimmer-bar {
+  0% { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.greedy-bar {
+  background: var(--primary-color);
+}
+
+.backtracking-bar {
+  background: var(--accent-color);
+}
+
+.benchmark-insights {
+  background: var(--light-bg);
+  padding: 1.5rem;
+  border-radius: 10px;
+  color: var(--text-color);
+  line-height: 1.7;
+}
+
+.benchmark-insights p {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .benchmark-stats {
+    flex-direction: column;
+  }
+}
+
+/* Challenge Mode Styles */
+.action-buttons {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.challenge-toggle-button {
+  background: linear-gradient(45deg, #6930c3, var(--primary-color));
+  font-size: 1rem;
+  padding: 0.9rem 1.8rem;
+}
+
+.challenge-section {
+  background: var(--card-bg);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  border: var(--card-border);
+  margin-top: 1rem;
+}
+
+.challenge-section h2 {
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.challenge-section > p {
+  margin-bottom: 2rem;
+  line-height: 1.7;
+}
+
+.challenge-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.challenge-card {
+  background: var(--light-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border-left: 5px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.challenge-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.challenge-card.active {
+  border-left-color: var(--primary-color);
+  background: rgba(67, 97, 238, 0.1);
+}
+
+.challenge-card.easy {
+  border-top: 3px solid #4cc9f0;
+}
+
+.challenge-card.medium {
+  border-top: 3px solid #6930c3;
+}
+
+.challenge-card.hard {
+  border-top: 3px solid var(--accent-color);
+}
+
+.challenge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.challenge-header h3 {
+  margin: 0;
+  color: var(--secondary-color);
+  font-size: 1.2rem;
+}
+
+.challenge-difficulty {
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+}
+
+.challenge-card.easy .challenge-difficulty {
+  background: #4cc9f0;
+  color: white;
+}
+
+.challenge-card.medium .challenge-difficulty {
+  background: #6930c3;
+  color: white;
+}
+
+.challenge-card.hard .challenge-difficulty {
+  background: var(--accent-color);
+  color: white;
+}
+
+.challenge-card p {
+  margin: 0.5rem 0 1rem 0;
+  font-size: 0.95rem;
+  flex-grow: 1;
+}
+
+.challenge-details {
+  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.8rem;
+  border-radius: 8px;
+}
+
+.challenge-details div {
+  margin: 0.3rem 0;
+}
+
+.challenge-playground {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--light-bg);
+}
+
+.challenge-playground h3 {
+  color: var(--primary-color);
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+.challenge-input {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.challenge-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.check-answer-button {
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  flex: 1;
+}
+
+.hint-button {
+  background: transparent;
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
+  box-shadow: none;
+  flex: 1;
+}
+
+.hint-button:hover {
+  background: rgba(67, 97, 238, 0.1);
+}
+
+.challenge-hint {
+  background: var(--light-bg);
+  padding: 1.2rem;
+  margin-top: 1.5rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  border-left: 4px solid var(--secondary-color);
+}
+
+input.correct {
+  border-color: #06d6a0 !important;
+  background-color: rgba(6, 214, 160, 0.1) !important;
+}
+
+input.incorrect {
+  border-color: var(--accent-color) !important;
+  background-color: rgba(247, 37, 133, 0.1) !important;
+}
+
+.challenge-feedback {
+  margin-top: 1.5rem;
+  padding: 1.2rem;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.challenge-feedback.correct {
+  background: rgba(6, 214, 160, 0.1);
+  border: 1px solid #06d6a0;
+}
+
+.challenge-feedback.incorrect {
+  background: rgba(247, 37, 133, 0.1);
+  border: 1px solid var(--accent-color);
+}
+
+.challenge-next {
+  margin-top: 1rem;
+}
+
+.challenge-try-visualize {
+  margin-top: 1rem;
+}
+
+.challenge-complete {
+  font-weight: bold;
+  color: var(--primary-color);
+  margin: 1rem 0;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .challenge-buttons {
+    flex-direction: column;
+  }
+  
+  .challenge-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Media query adjustments */
 @media (max-width: 768px) {
   #root {
     padding: 1rem;
@@ -923,5 +1463,9 @@ footer {
   .comparison-table th {
     padding: 0.8rem;
     font-size: 0.9rem;
+  }
+  
+  .history-list {
+    grid-template-columns: 1fr;
   }
 }
