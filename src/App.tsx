@@ -15,6 +15,9 @@ function App() {
   const [approach, setApproach] = useState<'greedy' | 'backtracking'>('greedy');
   const resultRef = useRef<HTMLDivElement>(null)
 
+  const [showAlgoDetails, setShowAlgoDetails] = useState<boolean>(false);
+  const [activeAlgoTab, setActiveAlgoTab] = useState<'greedy' | 'backtracking' | 'comparison'>('comparison');
+
   const maximizeNumber = (numStr: string, k: number): [string, string[], Array<{from: number, to: number}>] => {
     if (k === 0 || numStr.length <= 1) return [numStr, [], []];
     const digits = numStr.split('');
@@ -243,6 +246,13 @@ function App() {
             "The greedy approach swaps digits to maximize the number from left to right, always choosing the largest possible digit for each position." : 
             "The backtracking approach explores all possible combinations of swaps to find the optimal solution that produces the maximum number."}
         </p>
+        
+        <button 
+          className="info-button"
+          onClick={() => setShowAlgoDetails(true)}
+        >
+          <span className="info-icon">ℹ️</span> View Algorithm Details
+        </button>
       </div>
 
       <div className="input-section">
@@ -380,6 +390,192 @@ function App() {
             >
               Next Step
             </button>
+          </div>
+        </div>
+      )}
+      
+      {showAlgoDetails && (
+        <div className="modal-overlay" onClick={() => setShowAlgoDetails(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="close-button" onClick={() => setShowAlgoDetails(false)}>×</button>
+            
+            <h2>Algorithm Details</h2>
+            
+            <div className="modal-tabs">
+              <button 
+                className={activeAlgoTab === 'comparison' ? 'active' : ''}
+                onClick={() => setActiveAlgoTab('comparison')}
+              >
+                Comparison
+              </button>
+              <button 
+                className={activeAlgoTab === 'greedy' ? 'active' : ''}
+                onClick={() => setActiveAlgoTab('greedy')}
+              >
+                Greedy
+              </button>
+              <button 
+                className={activeAlgoTab === 'backtracking' ? 'active' : ''}
+                onClick={() => setActiveAlgoTab('backtracking')}
+              >
+                Backtracking
+              </button>
+            </div>
+            
+            {activeAlgoTab === 'comparison' && (
+              <div className="algo-comparison">
+                <table className="comparison-table">
+                  <thead>
+                    <tr>
+                      <th>Feature</th>
+                      <th>Greedy Approach</th>
+                      <th>Backtracking Approach</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Time Complexity</td>
+                      <td>O(n²)</td>
+                      <td>O(n! × k)</td>
+                    </tr>
+                    <tr>
+                      <td>Space Complexity</td>
+                      <td>O(n)</td>
+                      <td>O(n × k)</td>
+                    </tr>
+                    <tr>
+                      <td>Optimal Solution</td>
+                      <td>Not always guaranteed</td>
+                      <td>Always guaranteed</td>
+                    </tr>
+                    <tr>
+                      <td>Best For</td>
+                      <td>Larger inputs, performance-critical scenarios</td>
+                      <td>Smaller inputs, when optimality is required</td>
+                    </tr>
+                  </tbody>
+                </table>
+                
+                <div className="comparison-summary">
+                  <p>
+                    <strong>When to use Greedy:</strong> Use the greedy approach when dealing with larger numbers or when performance is critical. It works well for most practical cases and has predictable execution time.
+                  </p>
+                  <p>
+                    <strong>When to use Backtracking:</strong> Use the backtracking approach when you need a guaranteed optimal solution, especially for smaller inputs or when the greedy approach is known to fail for specific patterns.
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {activeAlgoTab === 'greedy' && (
+              <div className="algo-details">
+                <h3>Greedy Algorithm</h3>
+                
+                <div className="complexity-section">
+                  <div className="complexity-item">
+                    <h4>Time Complexity</h4>
+                    <div className="complexity">O(n²)</div>
+                    <p>Where n is the number of digits in the input.</p>
+                  </div>
+                  <div className="complexity-item">
+                    <h4>Space Complexity</h4>
+                    <div className="complexity">O(n)</div>
+                    <p>Only requires space to store the digits.</p>
+                  </div>
+                </div>
+                
+                <div className="algo-insight">
+                  <h4>How it Works</h4>
+                  <p>
+                    The greedy algorithm processes the number from left to right, position by position:
+                  </p>
+                  <ol>
+                    <li>For the leftmost position, find the largest digit in the entire number.</li>
+                    <li>If that digit is not already in the current position, swap it.</li>
+                    <li>Move to the next position and repeat, but only use remaining swaps.</li>
+                    <li>Continue until all swaps are used or all positions are processed.</li>
+                  </ol>
+                  
+                  <h4>Advantages</h4>
+                  <ul>
+                    <li>Simple and efficient implementation</li>
+                    <li>Works well for most inputs</li>
+                    <li>Predictable performance</li>
+                    <li>Handles large numbers efficiently</li>
+                  </ul>
+                  
+                  <h4>Limitations</h4>
+                  <ul>
+                    <li>May not find the optimal solution in some cases</li>
+                    <li>Cannot backtrack from suboptimal choices</li>
+                    <li>Performance depends on input patterns</li>
+                  </ul>
+                  
+                  <h4>Edge Cases</h4>
+                  <p>
+                    The greedy approach can fail to find the optimal solution when the best choice at a position doesn't lead to the overall best result. Consider "5432" with 1 swap - greedy would not swap anything (as larger digits are already at the left), but swapping 5 and 2 would yield "2435".
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {activeAlgoTab === 'backtracking' && (
+              <div className="algo-details"></div>
+                <h3>Backtracking Algorithm</h3>
+                
+                <div className="complexity-section"></div>
+                  <div className="complexity-item">
+                    <h4>Time Complexity</h4>
+                    <div className="complexity">O(n! × k)</div>
+                    <p>Where n is the number of digits and k is the number of swaps.</p>
+                  </div>
+                  <div className="complexity-item">
+                    <h4>Space Complexity</h4>
+                    <div className="complexity">O(n × k)</div>
+                    <p>Due to recursion and storing paths.</p>
+                  </div>
+                </div>
+                
+                <div className="algo-insight"></div>
+                  <h4>How it Works</h4>
+                  <p>
+                    The backtracking algorithm explores all possible swap combinations:
+                  </p>
+                  <ol>
+                    <li>Start with the given number and no swaps made.</li>
+                    <li>For each position, try swapping with each position to the right.</li>
+                    <li>Recursively explore the result of each swap.</li>
+                    <li>Keep track of the maximum number found so far.</li>
+                    <li>If we've used all swaps or reached the end, compare with the current maximum.</li>
+                    <li>Backtrack (undo swaps) and try different combinations.</li>
+                  </ol>
+                  
+                  <h4>Advantages</h4>
+                  <ul>
+                    <li>Guarantees the optimal solution</li>
+                    <li>Explores all possible combinations</li>
+                    <li>Can handle edge cases where greedy fails</li>
+                  </ul>
+                  
+                  <h4>Limitations</h4>
+                  <ul>
+                    <li>Exponential time complexity makes it inefficient for large inputs</li>
+                    <li>High memory usage due to recursion</li>
+                    <li>Overkill for many simple cases</li>
+                  </ul>
+                  
+                  <h4>Optimization Techniques</h4>
+                  <p>
+                    The backtracking approach can be optimized by:
+                  </p>
+                  <ul>
+                    <li>Branch and bound: Skip exploring paths that cannot lead to better solutions.</li>
+                    <li>Memoization: Store results of already computed subproblems.</li>
+                    <li>Early termination: Exit when a known optimal solution is found.</li>
+                  </ul>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
